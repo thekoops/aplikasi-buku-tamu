@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Buku Tamu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        /* ================= RESET ================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* ================= BODY ================= */
+body {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    min-height: 100vh;
+    padding: 30px;
+}
+
+/* ================= CONTAINER ================= */
+.container {
+    max-width: 900px;
+    margin: auto;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+/* ================= ANIMATION ================= */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ================= TITLE ================= */
+h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 26px;
+    color: #333;
+}
+
+select {
+    width: 100%;
+    padding: 12px 14px;
+    margin-top: 12px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+
+/* ================= FORM ================= */
+input,
+textarea {
+    width: 100%;
+    padding: 12px 14px;
+    margin-top: 12px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    transition: 0.3s;
+}
+
+input:focus,
+textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+textarea {
+    resize: none;
+    min-height: 90px;
+}
+
+/* ================= BUTTON ================= */
+button {
+    margin-top: 15px;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* Button Variants */
+.btn-simpan {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: #fff;
+}
+
+.btn-simpan:hover {
+    opacity: 0.9;
+}
+
+.btn-edit {
+    background: linear-gradient(135deg, #f6d365, #fda085);
+    color: #333;
+}
+
+.btn-hapus {
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    color: #fff;
+}
+
+.btn-edit:hover,
+.btn-hapus:hover {
+    opacity: 0.9;
+}
+
+/* ================= TABLE ================= */
+table {
+    width: 100%;
+    margin-top: 25px;
+    border-collapse: collapse;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+thead {
+    background: #667eea;
+    color: #fff;
+}
+
+th,
+td {
+    padding: 12px;
+    text-align: center;
+    font-size: 14px;
+}
+
+tbody tr {
+    background: #fff;
+    transition: 0.3s;
+}
+
+tbody tr:nth-child(even) {
+    background: #f9f9ff;
+}
+
+tbody tr:hover {
+    background: #eef1ff;
+}
+
+/* ================= ACTION BUTTON IN TABLE ================= */
+td button {
+    padding: 7px 12px;
+    font-size: 12px;
+    margin: 2px;
+    border-radius: 6px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+    h2 {
+        font-size: 22px;
+    }
+
+    th, td {
+        font-size: 12px;
+        padding: 8px;
+    }
+}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Buku Tamu</h2>
+
+    <!-- Penanda mode edit -->
+    <input type="hidden" id="indexEdit">
+
+    <input type="text" id="noid" placeholder="No ID">
+    <input type="text" id="nama" placeholder="Nama">
+    <input type="text" id="nohp" placeholder="No HP">
+    <select id="company">
+    <option value="">-- Pilih Company --</option>
+    <option value="Bangi Kopi">Bangi Kopi</option>
+    <option value="EY">PT EY</option>
+    <option value="Lokantara">PT Lokantara</option>
+    </select>
+
+    <textarea id="keterangan" placeholder="Keterangan"></textarea>
+
+    <button class="btn-simpan" onclick="simpanData()">Simpan</button>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+
+
+    <table>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>No ID</th>
+                <th>Nama</th>
+                <th>No HP</th>
+                <th>Company</th>
+                <th>Keterangan</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="dataTamu"></tbody>
+    </table>
+</div>
+
+<script>
+/* ================= PROTEKSI LOGIN ================= */
+if (localStorage.getItem("isLogin") !== "true") {
+    alert("Silakan login terlebih dahulu!");
+    window.location.href = "login.html";
+}
+
+/* ================= DATA ================= */
+let tamu = JSON.parse(localStorage.getItem("bukuTamu")) || [];
+
+/* ================= READ ================= */
+function tampilkanData() {
+    const tbody = document.getElementById("dataTamu");
+    tbody.innerHTML = "";
+
+    tamu.forEach((item, index) => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${item.noid}</td>
+                <td>${item.nama}</td>
+                <td>${item.nohp}</td>
+                <td>${item.company}</td>
+                <td>${item.keterangan}</td>
+                <td>
+                    <button class="btn-edit" onclick="editData(${index})">Edit</button>
+                    <button class="btn-hapus" onclick="hapusData(${index})">Hapus</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+/* ================= CREATE & UPDATE ================= */
+function simpanData() {
+    const noid = document.getElementById("noid").value.trim();
+    const nama = document.getElementById("nama").value.trim();
+    const nohp = document.getElementById("nohp").value.trim();
+    const company = document.getElementById("company").value.trim();
+    const keterangan = document.getElementById("keterangan").value.trim();
+    const indexEdit = document.getElementById("indexEdit").value;
+
+    if (!noid || !nama || !nohp || !company || !keterangan) {
+        alert("Semua data wajib diisi!");
+        return;
+    }
+
+    if (indexEdit === "") {
+        // CREATE
+        tamu.push({ noid, nama, nohp, company, keterangan });
+    } else {
+        // UPDATE
+        tamu[indexEdit] = { noid, nama, nohp, company, keterangan };
+        document.getElementById("indexEdit").value = "";
+    }
+
+    localStorage.setItem("bukuTamu", JSON.stringify(tamu));
+    resetForm();
+    tampilkanData();
+}
+
+/* ================= EDIT ================= */
+function editData(index) {
+    const data = tamu[index];
+
+    document.getElementById("noid").value = data.noid;
+    document.getElementById("nama").value = data.nama;
+    document.getElementById("nohp").value = data.nohp;
+    document.getElementById("company").value = data.company;
+    document.getElementById("keterangan").value = data.keterangan;
+    document.getElementById("indexEdit").value = index;
+}
+
+/* ================= DELETE ================= */
+function hapusData(index) {
+    if (confirm("Yakin ingin menghapus data ini?")) {
+        tamu.splice(index, 1);
+        localStorage.setItem("bukuTamu", JSON.stringify(tamu));
+        tampilkanData();
+    }
+}
+
+/* ================= RESET ================= */
+function resetForm() {
+    document.getElementById("noid").value = "";
+    document.getElementById("nama").value = "";
+    document.getElementById("nohp").value = "";
+    document.getElementById("company").value = "";
+    document.getElementById("keterangan").value = "";
+}
+function logout() {
+    if (confirm("Yakin ingin logout?")) {
+        localStorage.removeItem("isLogin");
+        alert("Logout berhasil");
+        window.location.href = "login.html";
+    }
+}
+/* ================= INIT ================= */
+tampilkanData();
+</script>
+
+</body>
+</html>
